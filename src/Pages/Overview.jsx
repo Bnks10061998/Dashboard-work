@@ -31,7 +31,7 @@ const Overview = () => {
   return (
     <div className="p-6 space-y-10 bg-gray-100 min-h-screen">
       <header className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">Welcome Back, Designer!</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Welcome Back  </h1>
         <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2">
           <FaPlusCircle /> New Project
         </button>
