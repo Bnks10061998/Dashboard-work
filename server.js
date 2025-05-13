@@ -6,7 +6,9 @@ import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken'; 
 import User from './src/models/User.js';
-import workRoutes from './src/routes/workRoutes.js'
+import workRoutes from './src/routes/workRoutes.js';
+import Client from './src/models/Client.js';
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -40,6 +42,28 @@ app.post('/api/signup', async (req, res) => {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
+});
+
+//Client List
+app.get('/api/clients', async (req, res) => {
+  const clients = await Client.find();
+  res.json(clients);
+});
+
+app.post('/api/clients', async (req, res) => {
+  const newClient = new Client(req.body);
+  await newClient.save();
+  res.status(201).json(newClient);
+});
+
+app.put('/api/clients/:id', async (req, res) => {
+  const updated = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(updated);
+});
+
+app.delete('/api/clients/:id', async (req, res) => {
+  await Client.findByIdAndDelete(req.params.id);
+  res.json({ message: 'Client deleted' });
 });
 
 // Login Route with JWT
