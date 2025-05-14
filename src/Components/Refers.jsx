@@ -124,41 +124,51 @@
 //         </button>
 //       </div>
 
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-//         {referrals.map((r) => (
-//           <div key={r.id} className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition">
-//             <div className="flex items-center space-x-4 mb-4">
-//               <img
-//                 src={r.imageUrl || 'https://via.placeholder.com/100'}
-//                 alt="Referral"
-//                 className="w-20 h-20 rounded-full object-cover"
-//               />
-//               <div>
-//                 <h3 className="text-xl font-semibold">{r.referralName}</h3>
-//                 <p className="text-sm text-gray-500">{r.referralCode}</p>
-//               </div>
-//             </div>
-//             <p className="text-sm text-gray-500">{r.date}</p>
-//             <div className="mt-2">
-//               <span className={statusBadge(r.status)}>{r.status}</span>
-//             </div>
-//             <div className="mt-4 flex justify-between space-x-2">
-//               <button
-//                 onClick={() => openModal(r)}
-//                 className="text-blue-600 hover:underline"
-//               >
-//                 Edit
-//               </button>
-//               <button
-//                 onClick={() => deleteReferral(r.id)}
-//                 className="text-red-600 hover:underline"
-//               >
-//                 Delete
-//               </button>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
+//       <table className="w-full table-auto border-collapse">
+//         <thead>
+//           <tr>
+//             <th className="px-4 py-2 border-b text-left">Image</th>
+//             <th className="px-4 py-2 border-b text-left">Referral Name</th>
+//             <th className="px-4 py-2 border-b text-left">Referral Code</th>
+//             <th className="px-4 py-2 border-b text-left">Date</th>
+//             <th className="px-4 py-2 border-b text-left">Status</th>
+//             <th className="px-4 py-2 border-b text-left">Actions</th>
+//           </tr>
+//         </thead>
+//         <tbody>
+//           {referrals.map((r) => (
+//             <tr key={r.id}>
+//               <td className="px-4 py-2 border-b">
+//                 <img
+//                   src={r.imageUrl || 'https://via.placeholder.com/100'}
+//                   alt="Referral"
+//                   className="w-12 h-12 rounded-full object-cover"
+//                 />
+//               </td>
+//               <td className="px-4 py-2 border-b">{r.referralName}</td>
+//               <td className="px-4 py-2 border-b">{r.referralCode}</td>
+//               <td className="px-4 py-2 border-b">{r.date}</td>
+//               <td className="px-4 py-2 border-b">
+//                 <span className={statusBadge(r.status)}>{r.status}</span>
+//               </td>
+//               <td className="px-4 py-2 border-b">
+//                 <button
+//                   onClick={() => openModal(r)}
+//                   className="text-blue-600 hover:underline mr-2"
+//                 >
+//                   Edit
+//                 </button>
+//                 <button
+//                   onClick={() => deleteReferral(r.id)}
+//                   className="text-red-600 hover:underline"
+//                 >
+//                   Delete
+//                 </button>
+//               </td>
+//             </tr>
+//           ))}
+//         </tbody>
+//       </table>
 
 //       {/* Modal for Add/Edit Referral */}
 //       {isModalOpen && (
@@ -239,28 +249,13 @@
 
 // export default Refers;
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const Refers = () => {
-  const [referrals, setReferrals] = useState([
-    {
-      id: 1,
-      referralName: 'Jane Doe',
-      referralCode: 'R12345',
-      status: 'Pending',
-      date: '2025-05-01',
-      imageUrl: '', // Image field
-    },
-    {
-      id: 2,
-      referralName: 'John Smith',
-      referralCode: 'R67890',
-      status: 'Approved',
-      date: '2025-04-20',
-      imageUrl: '', // Image field
-    },
-  ]);
-
+  const [referrals, setReferrals] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -269,8 +264,29 @@ const Refers = () => {
     referralCode: '',
     status: 'Pending',
     date: '',
-    imageUrl: '', // Image field
+    image: '', // Updated to match backend
   });
+
+  useEffect(() => {
+    fetchReferrals();
+  }, []);
+
+  const fetchReferrals = async () => {
+    try {
+      const res = await axios.get(`${apiUrl}/api/referrals`);
+      if (res.status === 200 && Array.isArray(res.data)) {
+        const dataWithDefaults = res.data.map((ref) => ({
+          ...ref,
+          image: ref.image || 'https://via.placeholder.com/100',
+        }));
+        setReferrals(dataWithDefaults);
+      } else {
+        console.error('Expected array but got:', res.data);
+      }
+    } catch (err) {
+      console.error('Fetch failed:', err);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -282,7 +298,7 @@ const Refers = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({ ...formData, imageUrl: reader.result });
+        setFormData({ ...formData, image: reader.result });
       };
       reader.readAsDataURL(file);
     }
@@ -291,8 +307,12 @@ const Refers = () => {
   const openModal = (referral = null) => {
     if (referral) {
       setIsEditMode(true);
-      setSelectedId(referral.id);
-      setFormData({ ...referral });
+      setSelectedId(referral._id);
+      const formattedDate = referral.date ? referral.date.slice(0, 10) : '';
+      setFormData({
+        ...referral,
+        date: formattedDate,
+      });
     } else {
       setIsEditMode(false);
       setFormData({
@@ -300,41 +320,43 @@ const Refers = () => {
         referralCode: '',
         status: 'Pending',
         date: '',
-        imageUrl: '', // Reset image field
+        image: '',
       });
     }
     setIsModalOpen(true);
   };
 
-  const saveReferral = () => {
+  const saveReferral = async () => {
     const { referralName, referralCode, date } = formData;
     if (!referralName || !referralCode || !date) {
       alert('Please fill all required fields.');
       return;
     }
 
-    if (isEditMode) {
-      setReferrals((prev) =>
-        prev.map((r) =>
-          r.id === selectedId ? { ...formData, id: selectedId } : r
-        )
-      );
-    } else {
-      const newId = referrals.length + 1;
-      setReferrals([
-        ...referrals,
-        { ...formData, id: newId, date },
-      ]);
+    try {
+      if (isEditMode) {
+        await axios.put(`${apiUrl}/api/referrals/${selectedId}`, formData);
+      } else {
+        await axios.post(`${apiUrl}/api/referrals`, formData);
+      }
+      fetchReferrals();
+      setIsModalOpen(false);
+      setIsEditMode(false);
+      setSelectedId(null);
+    } catch (err) {
+      console.error('Save failed:', err);
+      alert('Save failed: ' + err.message);
     }
-
-    setIsModalOpen(false);
-    setIsEditMode(false);
-    setSelectedId(null);
   };
 
-  const deleteReferral = (id) => {
+  const deleteReferral = async (id) => {
     if (window.confirm('Are you sure you want to delete this referral?')) {
-      setReferrals((prev) => prev.filter((r) => r.id !== id));
+      try {
+        await axios.delete(`${apiUrl}/api/referrals/${id}`);
+        fetchReferrals();
+      } catch (err) {
+        console.error('Delete failed:', err);
+      }
     }
   };
 
@@ -378,17 +400,17 @@ const Refers = () => {
         </thead>
         <tbody>
           {referrals.map((r) => (
-            <tr key={r.id}>
+            <tr key={r._id}>
               <td className="px-4 py-2 border-b">
                 <img
-                  src={r.imageUrl || 'https://via.placeholder.com/100'}
+                  src={r.image || 'https://via.placeholder.com/100'}
                   alt="Referral"
                   className="w-12 h-12 rounded-full object-cover"
                 />
               </td>
               <td className="px-4 py-2 border-b">{r.referralName}</td>
               <td className="px-4 py-2 border-b">{r.referralCode}</td>
-              <td className="px-4 py-2 border-b">{r.date}</td>
+              <td className="px-4 py-2 border-b">{r.date.slice(0, 10)}</td> {/* Display formatted date */}
               <td className="px-4 py-2 border-b">
                 <span className={statusBadge(r.status)}>{r.status}</span>
               </td>
@@ -400,7 +422,7 @@ const Refers = () => {
                   Edit
                 </button>
                 <button
-                  onClick={() => deleteReferral(r.id)}
+                  onClick={() => deleteReferral(r._id)}
                   className="text-red-600 hover:underline"
                 >
                   Delete
@@ -411,11 +433,12 @@ const Refers = () => {
         </tbody>
       </table>
 
-      {/* Modal for Add/Edit Referral */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">{isEditMode ? 'Edit Referral' : 'Add New Referral'}</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {isEditMode ? 'Edit Referral' : 'Add New Referral'}
+            </h2>
             <input
               type="text"
               name="referralName"
@@ -457,10 +480,10 @@ const Refers = () => {
                 onChange={handleImageChange}
                 className="w-full p-2 border rounded"
               />
-              {formData.imageUrl && (
+              {formData.image && (
                 <div className="mt-4">
                   <img
-                    src={formData.imageUrl}
+                    src={formData.image}
                     alt="Referral Preview"
                     className="w-32 h-32 rounded-full"
                   />
@@ -489,4 +512,3 @@ const Refers = () => {
 };
 
 export default Refers;
-
