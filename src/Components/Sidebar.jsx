@@ -23,6 +23,7 @@ const menuItems = [
   {
     label: 'Status', icon: <FaFolderOpen />, children: [
       { to: '/invoices', icon: <FaFileInvoiceDollar />, label: 'Invoices' },
+      { to: '/invoice-list', icon: <FaFileInvoiceDollar />, label: 'Invoice Status' },
       { to: '/payment', icon: <FaCreditCard />, label: 'Payment' },
       { to: '/quotation', icon: <FaQuoteLeft />, label: 'Quotation' },
     ]

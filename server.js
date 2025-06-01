@@ -1,13 +1,653 @@
+// import express from 'express';
+// import mongoose from 'mongoose';
+// import cors from 'cors';
+// import bodyParser from 'body-parser';
+// import dotenv from 'dotenv';
+// import bcrypt from 'bcrypt';
+// import jwt from 'jsonwebtoken';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+
+// import User from './src/models/User.js';
+// import Client from './src/models/Client.js';
+// import Project from './src/models/Project.js';
+
+// import workRoutes from './src/routes/workRoutes.js';
+// import referralRoutes from './src/routes/referralRoutes.js';
+// import galleryRoutes from './src/routes/galleryRoutes.js';
+// import templateRoutes from './src/routes/templateRoutes.js';
+// import invoiceRoutes from './src/routes/invoiceRoutes.js';
+// import emailRoutes from './routes/email.js'; 
+// // import email from './src/routes/email.js';
+// // const emailRoutes = require('./routes/email');
+
+// dotenv.config();
+// const app = express();
+// const PORT = process.env.PORT || 5000;
+
+// // For __dirname in ES module
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// // Middleware
+// app.use(cors());
+// app.use(bodyParser.json({ limit: '10mb' }));
+// app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+// app.use('/uploads/templates', express.static(path.join(__dirname, 'uploads/templates')));
+// app.use('/api/invoices', invoiceRoutes);
+// app.use('/api/send-email', emailRoutes);
+
+
+// // Serve uploaded files statically
+// // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// // Use routes
+// app.use('/api/work', workRoutes);
+// app.use('/api/referrals', referralRoutes);
+// app.use('/api/gallery', galleryRoutes);
+// app.use('/api/templates', templateRoutes);
+
+// // JWT Middleware
+// const authenticateToken = (req, res, next) => {
+//   const authHeader = req.headers['authorization'];
+//   const token = authHeader?.split(' ')[1];
+//   if (!token) return res.status(401).json({ message: 'Access token required' });
+
+//   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+//     if (err) return res.status(403).json({ message: 'Invalid or expired token' });
+//     req.user = user;
+//     next();
+//   });
+// };
+
+// // MongoDB connection
+// mongoose.connect(process.env.MONGO_URL, { dbName: process.env.dbName })
+//   .then(() => console.log('MongoDB connected'))
+//   .catch((err) => console.error('MongoDB connection error:', err));
+
+// // ==================== AUTH ROUTES ====================
+// app.post('/api/signup', async (req, res) => {
+//   const { fullName, email, password } = req.body;
+//   try {
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) return res.status(400).json({ message: 'Email already exists' });
+
+//     const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT_ROUNDS));
+//     const user = new User({ fullName, email, password: hashedPassword });
+//     await user.save();
+//     res.status(200).json({ message: 'Signup successful' });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.post('/api/login', async (req, res) => {
+//   const { email, password } = req.body;
+//   try {
+//     const user = await User.findOne({ email });
+//     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+
+//     const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '80h' });
+//     res.status(200).json({ message: 'Login successful', token, user: { id: user._id, email: user.email } });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// // ==================== CLIENT ROUTES ====================
+// app.get('/api/clients', async (req, res) => {
+//   const clients = await Client.find();
+//   res.json(clients);
+// });
+
+// app.post('/api/clients', async (req, res) => {
+//   const newClient = new Client(req.body);
+//   await newClient.save();
+//   res.status(201).json(newClient);
+// });
+
+// app.put('/api/clients/:id', async (req, res) => {
+//   const updated = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//   res.json(updated);
+// });
+
+// app.delete('/api/clients/:id', async (req, res) => {
+//   await Client.findByIdAndDelete(req.params.id);
+//   res.json({ message: 'Client deleted' });
+// });
+
+// // ==================== PROJECT ROUTES ====================
+// app.get('/api/projects', authenticateToken, async (req, res) => {
+//   try {
+//     const { page = 1, limit = 10, search = '', status } = req.query;
+//     const query = {
+//       name: { $regex: search, $options: 'i' },
+//       ...(status ? { status } : {}),
+//     };
+
+//     const total = await Project.countDocuments(query);
+//     const projects = await Project.find(query)
+//       .skip((page - 1) * limit)
+//       .limit(Number(limit));
+
+//     res.json({ projects, total });
+//   } catch (err) {
+//     console.error('Error fetching projects:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.post('/api/projects', authenticateToken, async (req, res) => {
+//   const newProject = new Project(req.body);
+//   await newProject.save();
+//   res.status(201).json(newProject);
+// });
+
+// app.get('/api/projects/:id', authenticateToken, async (req, res) => {
+//   const project = await Project.findById(req.params.id);
+//   res.json(project);
+// });
+
+// app.put('/api/projects/:id', authenticateToken, async (req, res) => {
+//   const updated = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//   res.json(updated);
+// });
+
+// app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
+//   await Project.findByIdAndDelete(req.params.id);
+//   res.json({ message: 'Project deleted' });
+// });
+
+// // ==================== START SERVER ====================
+// app.listen(PORT, () => {
+//   console.log(`✅ Server running on http://localhost:${PORT}`);
+// });
+
+
+// import express from 'express';
+// import mongoose from 'mongoose';
+// import cors from 'cors';
+// import bodyParser from 'body-parser';
+// import dotenv from 'dotenv';
+// import bcrypt from 'bcrypt';
+// import jwt from 'jsonwebtoken';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+
+// import User from './src/models/User.js';
+// import Client from './src/models/Client.js';
+// import Project from './src/models/Project.js';
+
+// import workRoutes from './src/routes/workRoutes.js';
+// import referralRoutes from './src/routes/referralRoutes.js';
+// import galleryRoutes from './src/routes/galleryRoutes.js';
+// import templateRoutes from './src/routes/templateRoutes.js';
+// import invoiceRoutes from './src/routes/invoiceRoutes.js';
+// import emailRoutes from './src/routes/email.js';
+// import paymentRoutes from './src/routes/paymentRoutes.js';
+// import quotationRoutes from './src/routes/quotationRoutes.js';
+// import eventRoutes from './src/routes/eventRoutes.js';
+
+
+
+// dotenv.config();
+// const app = express(); 
+// const PORT = process.env.PORT || 5000;
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// // Middleware
+// app.use(cors());
+// app.use(bodyParser.json({ limit: '10mb' }));
+// app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+// app.use('/uploads/templates', express.static(path.join(__dirname, 'uploads/templates')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// // Routes
+// app.use('/api/invoices', invoiceRoutes);
+// app.use('/api/send-email', emailRoutes);
+// app.use('/api/work', workRoutes);
+// app.use('/api/referrals', referralRoutes);
+// app.use('/api/gallery', galleryRoutes);
+// app.use('/api/templates', templateRoutes);
+// app.use('/api/send-email', emailRoutes);
+// app.use('/api/payments', paymentRoutes);
+// app.use('/api/quotations', quotationRoutes);
+// app.use("/api/events", eventRoutes);
+
+// import express from 'express';
+// import mongoose from 'mongoose';
+// import cors from 'cors';
+// import bodyParser from 'body-parser';
+// import dotenv from 'dotenv';
+// import bcrypt from 'bcrypt';
+// import jwt from 'jsonwebtoken';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+
+// import User from './src/models/User.js';
+// import Client from './src/models/Client.js';
+// import Project from './src/models/Project.js';
+
+// import workRoutes from './src/routes/workRoutes.js';
+// import referralRoutes from './src/routes/referralRoutes.js';
+// import galleryRoutes from './src/routes/galleryRoutes.js';
+// import templateRoutes from './src/routes/templateRoutes.js';
+// import invoiceRoutes from './src/routes/invoiceRoutes.js';
+// import emailRoutes from './src/routes/email.js';
+// import paymentRoutes from './src/routes/paymentRoutes.js';
+// import quotationRoutes from './src/routes/quotationRoutes.js';
+// import eventRoutes from './src/routes/eventRoutes.js';
+// import messageRoutes from './src/routes/messageRoutes.js';
+
+
+// dotenv.config();
+// const app = express(); 
+// const PORT = process.env.PORT || 5000;
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// // Middleware
+// app.use(cors());
+// app.use(bodyParser.json({ limit: '10mb' }));
+// app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+// app.use('/uploads/templates', express.static(path.join(__dirname, 'uploads/templates')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// // Routes
+// app.use('/api/invoices', invoiceRoutes);
+// app.use('/api/send-email', emailRoutes);
+// app.use('/api/work', workRoutes);
+// app.use('/api/referrals', referralRoutes);
+// app.use('/api/gallery', galleryRoutes);
+// app.use('/api/templates', templateRoutes);
+// app.use('/api/send-email', emailRoutes);
+// app.use('/api/payments', paymentRoutes);
+// app.use('/api/quotations', quotationRoutes);
+// app.use("/api/events", eventRoutes);
+// app.use("/api/messages", messageRoutes);
+
+// // JWT Auth Middleware
+// const authenticateToken = (req, res, next) => {
+//   const authHeader = req.headers['authorization'];
+//   const token = authHeader?.split(' ')[1];
+//   if (!token) return res.status(401).json({ message: 'Access token required' });
+
+//   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+//     if (err) return res.status(403).json({ message: 'Invalid or expired token' });
+//     req.user = user;
+//     next();
+//   });
+// };
+
+// // MongoDB Connection
+// mongoose.connect(process.env.MONGO_URL, { dbName: process.env.dbName })
+//   .then(() => console.log('✅ MongoDB connected'))
+//   .catch((err) => console.error('❌ MongoDB connection error:', err));
+
+// // Auth Routes
+// app.post('/api/signup', async (req, res) => {
+//   const { fullName, email, password } = req.body;
+//   try {
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) return res.status(400).json({ message: 'Email already exists' });
+
+//     const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT_ROUNDS));
+//     const user = new User({ fullName, email, password: hashedPassword });
+//     await user.save();
+//     res.status(200).json({ message: 'Signup successful' });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.post('/api/login', async (req, res) => {
+//   const { email, password } = req.body;
+//   try {
+//     const user = await User.findOne({ email });
+//     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+
+//     const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '80h' });
+//     res.status(200).json({ message: 'Login successful', token, user: { id: user._id, email: user.email } });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// // Client Routes
+// app.get('/api/clients', async (req, res) => {
+//   const clients = await Client.find();
+//   res.json(clients);
+// });
+
+// app.post('/api/clients', async (req, res) => {
+//   const newClient = new Client(req.body);
+//   await newClient.save();
+//   res.status(201).json(newClient);
+// });
+
+// app.put('/api/clients/:id', async (req, res) => {
+//   const updated = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//   res.json(updated);
+// });
+
+// app.delete('/api/clients/:id', async (req, res) => {
+//   await Client.findByIdAndDelete(req.params.id);
+//   res.json({ message: 'Client deleted' });
+// });
+
+// // Project Routes
+// app.get('/api/projects', authenticateToken, async (req, res) => {
+//   try {
+//     const { page = 1, limit = 10, search = '', status } = req.query;
+//     const query = {
+//       name: { $regex: search, $options: 'i' },
+//       ...(status ? { status } : {}),
+//     };
+
+//     const total = await Project.countDocuments(query);
+//     const projects = await Project.find(query)
+//       .skip((page - 1) * limit)
+//       .limit(Number(limit));
+
+//     res.json({ projects, total });
+//   } catch (err) {
+//     console.error('Error fetching projects:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.post('/api/projects', authenticateToken, async (req, res) => {
+//   const newProject = new Project(req.body);
+//   await newProject.save();
+//   res.status(201).json(newProject);
+// });
+
+// app.get('/api/projects/:id', authenticateToken, async (req, res) => {
+//   const project = await Project.findById(req.params.id);
+//   res.json(project);
+// });
+
+// app.put('/api/projects/:id', authenticateToken, async (req, res) => {
+//   const updated = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//   res.json(updated);
+// });
+
+// app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
+//   await Project.findByIdAndDelete(req.params.id);
+//   res.json({ message: 'Project deleted' });
+// });
+
+// // Start Server
+// app.listen(PORT, () => {
+//   console.log(`🚀 Server running at http://localhost:${PORT}`);
+// });
+
+
+
+
+// import express from 'express';
+// import mongoose from 'mongoose';
+// import cors from 'cors';
+// import dotenv from 'dotenv';
+// import bcrypt from 'bcrypt';
+// import jwt from 'jsonwebtoken';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+// import http from 'http';
+// import { Server } from 'socket.io';
+
+// import User from './src/models/User.js';
+// import Client from './src/models/Client.js';
+// import Project from './src/models/Project.js';
+
+// import workRoutes from './src/routes/workRoutes.js';
+// import referralRoutes from './src/routes/referralRoutes.js';
+// import galleryRoutes from './src/routes/galleryRoutes.js';
+// import templateRoutes from './src/routes/templateRoutes.js';
+// import invoiceRoutes from './src/routes/invoiceRoutes.js';
+// import emailRoutes from './src/routes/email.js';
+// import paymentRoutes from './src/routes/paymentRoutes.js';
+// import quotationRoutes from './src/routes/quotationRoutes.js';
+// import eventRoutes from './src/routes/eventRoutes.js';
+// import messageRoutes from './src/routes/messageRoutes.js';
+
+// dotenv.config();
+// const app = express(); 
+// const PORT = process.env.PORT || 5000;
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// // Create HTTP server and bind Socket.IO
+// const server = http.createServer(app);
+// const io = new Server(server, {
+//   cors: {
+//     origin: "*", // Adjust this to your client origin in production
+//     methods: ["GET", "POST"]
+//   }
+// });
+
+// // Socket.IO connection
+// io.on('connection', (socket) => {
+//   console.log('⚡️ User connected:', socket.id);
+
+//   socket.on('disconnect', () => {
+//     console.log('User disconnected:', socket.id);
+//   });
+
+//   // Add your custom socket event handlers here
+//   // Example:
+//   // socket.on('chat message', (msg) => {
+//   //   io.emit('chat message', msg);
+//   // });
+// });
+
+// // Middleware
+// app.use(cors());
+// app.use(express.json({ limit: '10mb' }));
+// app.use(express.urlencoded({ limit: '10mb', extended: true }));
+// app.use('/uploads/templates', express.static(path.join(__dirname, 'uploads/templates')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// // Routes
+// app.use('/api/invoices', invoiceRoutes);
+// app.use('/api/send-email', emailRoutes);
+// app.use('/api/work', workRoutes);
+// app.use('/api/referrals', referralRoutes);
+// app.use('/api/gallery', galleryRoutes);
+// app.use('/api/templates', templateRoutes);
+// app.use('/api/payments', paymentRoutes);
+// app.use('/api/quotations', quotationRoutes);
+// app.use("/api/events", eventRoutes);
+// app.use("/api/messages", messageRoutes);
+
+// // JWT Auth Middleware
+// const authenticateToken = (req, res, next) => {
+//   const authHeader = req.headers['authorization'];
+//   const token = authHeader?.split(' ')[1];
+//   if (!token) return res.status(401).json({ message: 'Access token required' });
+
+//   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+//     if (err) return res.status(403).json({ message: 'Invalid or expired token' });
+//     req.user = user;
+//     next();
+//   });
+// };
+
+// // MongoDB Connection
+// mongoose.connect(process.env.MONGO_URL, { dbName: process.env.dbName })
+//   .then(() => console.log('✅ MongoDB connected'))
+//   .catch((err) => console.error('❌ MongoDB connection error:', err));
+
+// // Auth Routes
+// app.post('/api/signup', async (req, res) => {
+//   const { fullName, email, password } = req.body;
+//   try {
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) return res.status(400).json({ message: 'Email already exists' });
+
+//     const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT_ROUNDS));
+//     const user = new User({ fullName, email, password: hashedPassword });
+//     await user.save();
+//     res.status(200).json({ message: 'Signup successful' });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.post('/api/login', async (req, res) => {
+//   const { email, password } = req.body;
+//   try {
+//     const user = await User.findOne({ email });
+//     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+
+//     const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '80h' });
+//     res.status(200).json({ message: 'Login successful', token, user: { id: user._id, email: user.email } });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// // Client Routes with error handling
+// app.get('/api/clients', async (req, res) => {
+//   try {
+//     const clients = await Client.find();
+//     res.json(clients);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.post('/api/clients', async (req, res) => {
+//   try {
+//     const newClient = new Client(req.body);
+//     await newClient.save();
+//     res.status(201).json(newClient);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.put('/api/clients/:id', async (req, res) => {
+//   try {
+//     const updated = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//     res.json(updated);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.delete('/api/clients/:id', async (req, res) => {
+//   try {
+//     await Client.findByIdAndDelete(req.params.id);
+//     res.json({ message: 'Client deleted' });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// // Project Routes (authentication applied)
+// app.get('/api/projects', authenticateToken, async (req, res) => {
+//   try {
+//     const { page = 1, limit = 10, search = '', status } = req.query;
+//     const query = {
+//       name: { $regex: search, $options: 'i' },
+//       ...(status ? { status } : {}),
+//     };
+
+//     const total = await Project.countDocuments(query);
+//     const projects = await Project.find(query)
+//       .skip((page - 1) * limit)
+//       .limit(Number(limit));
+
+//     res.json({ projects, total });
+//   } catch (err) {
+//     console.error('Error fetching projects:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.post('/api/projects', authenticateToken, async (req, res) => {
+//   try {
+//     const newProject = new Project(req.body);
+//     await newProject.save();
+//     res.status(201).json(newProject);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.get('/api/projects/:id', authenticateToken, async (req, res) => {
+//   try {
+//     const project = await Project.findById(req.params.id);
+//     res.json(project);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.put('/api/projects/:id', authenticateToken, async (req, res) => {
+//   try {
+//     const updated = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//     res.json(updated);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
+//   try {
+//     await Project.findByIdAndDelete(req.params.id);
+//     res.json({ message: 'Project deleted' });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// // Start Server with HTTP server (for socket.io)
+// server.listen(PORT, () => {
+//   console.log(`🚀 Server running at http://localhost:${PORT}`);
+// });
+
+
 
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import http from 'http';
+import { Server } from 'socket.io';
 
 import User from './src/models/User.js';
 import Client from './src/models/Client.js';
@@ -16,30 +656,58 @@ import Project from './src/models/Project.js';
 import workRoutes from './src/routes/workRoutes.js';
 import referralRoutes from './src/routes/referralRoutes.js';
 import galleryRoutes from './src/routes/galleryRoutes.js';
+import templateRoutes from './src/routes/templateRoutes.js';
+import invoiceRoutes from './src/routes/invoiceRoutes.js';
+import emailRoutes from './src/routes/email.js';
+import paymentRoutes from './src/routes/paymentRoutes.js';
+import quotationRoutes from './src/routes/quotationRoutes.js';
+import eventRoutes from './src/routes/eventRoutes.js';
+import messageRoutes from './src/routes/messageRoutes.js';
 
 dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// For __dirname in ES module
+// Resolve __dirname with ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Create HTTP server and attach Socket.IO
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",  // Replace with your frontend URL in production
+    methods: ["GET", "POST"]
+  }
+});
+
+// Socket.IO Connection
+io.on('connection', (socket) => {
+  console.log('⚡️ User connected:', socket.id);
+
+  // Example socket event handler: broadcast chat message to all clients
+  socket.on('chat message', (msg) => {
+    io.emit('chat message', msg);  // Broadcast to all connected clients
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+
+  // TODO: Add more socket events like private messaging, typing indicators, etc.
+});
+
 // Middleware
 app.use(cors());
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve uploaded files statically
-// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Static file serving for uploads
+app.use('/uploads/templates', express.static(path.join(__dirname, 'uploads/templates')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Use routes
-app.use('/api/work', workRoutes);
-app.use('/api/referrals', referralRoutes);
-app.use('/api/gallery', galleryRoutes);
-
-// JWT Middleware
+// JWT Authentication Middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader?.split(' ')[1];
@@ -52,12 +720,13 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// MongoDB connection
+// MongoDB Connection
 mongoose.connect(process.env.MONGO_URL, { dbName: process.env.dbName })
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// ==================== AUTH ROUTES ====================
+// --------- AUTH ROUTES ---------
+// Signup
 app.post('/api/signup', async (req, res) => {
   const { fullName, email, password } = req.body;
   try {
@@ -67,13 +736,15 @@ app.post('/api/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT_ROUNDS));
     const user = new User({ fullName, email, password: hashedPassword });
     await user.save();
-    res.status(200).json({ message: 'Signup successful' });
+
+    res.status(201).json({ message: 'Signup successful' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
+// Login
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -91,32 +762,53 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// ==================== CLIENT ROUTES ====================
+// --------- CLIENT ROUTES ---------
 app.get('/api/clients', async (req, res) => {
-  const clients = await Client.find();
-  res.json(clients);
+  try {
+    const clients = await Client.find();
+    res.json(clients);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 app.post('/api/clients', async (req, res) => {
-  const newClient = new Client(req.body);
-  await newClient.save();
-  res.status(201).json(newClient);
+  try {
+    const newClient = new Client(req.body);
+    await newClient.save();
+    res.status(201).json(newClient);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 app.put('/api/clients/:id', async (req, res) => {
-  const updated = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
+  try {
+    const updatedClient = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedClient);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 app.delete('/api/clients/:id', async (req, res) => {
-  await Client.findByIdAndDelete(req.params.id);
-  res.json({ message: 'Client deleted' });
+  try {
+    await Client.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Client deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// ==================== PROJECT ROUTES ====================
+// --------- PROJECT ROUTES (Protected) ---------
 app.get('/api/projects', authenticateToken, async (req, res) => {
   try {
     const { page = 1, limit = 10, search = '', status } = req.query;
+
     const query = {
       name: { $regex: search, $options: 'i' },
       ...(status ? { status } : {}),
@@ -124,7 +816,7 @@ app.get('/api/projects', authenticateToken, async (req, res) => {
 
     const total = await Project.countDocuments(query);
     const projects = await Project.find(query)
-      .skip((page - 1) * limit)
+      .skip((page - 1) * Number(limit))
       .limit(Number(limit));
 
     res.json({ projects, total });
@@ -135,27 +827,66 @@ app.get('/api/projects', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/projects', authenticateToken, async (req, res) => {
-  const newProject = new Project(req.body);
-  await newProject.save();
-  res.status(201).json(newProject);
+  try {
+    const newProject = new Project(req.body);
+    await newProject.save();
+    res.status(201).json(newProject);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 app.get('/api/projects/:id', authenticateToken, async (req, res) => {
-  const project = await Project.findById(req.params.id);
-  res.json(project);
+  try {
+    const project = await Project.findById(req.params.id);
+    res.json(project);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 app.put('/api/projects/:id', authenticateToken, async (req, res) => {
-  const updated = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
+  try {
+    const updatedProject = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedProject);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
-  await Project.findByIdAndDelete(req.params.id);
-  res.json({ message: 'Project deleted' });
+  try {
+    await Project.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Project deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// ==================== START SERVER ====================
-app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+// --------- ROUTES IMPORTED FROM SEPARATE FILES ---------
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/send-email', emailRoutes);
+app.use('/api/work', workRoutes);
+app.use('/api/referrals', referralRoutes);
+app.use('/api/gallery', galleryRoutes);
+app.use('/api/templates', templateRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/quotations', quotationRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/messages', messageRoutes);  // You can use this for messages REST APIs
+
+// 404 Handler for unmatched routes
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+
+
+// Start server with Socket.IO attached
+server.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });

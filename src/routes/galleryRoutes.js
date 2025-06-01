@@ -23,14 +23,56 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // GET all images
+// router.get('/', async (req, res) => {
+//   try {
+//     const images = await Gallery.find();
+//     res.json(images);
+//   } catch (err) {
+//     res.status(500).json({ message: 'Failed to fetch images' });
+//   }
+// });
+// GET all images with pagination: /api/gallery?page=1&limit=10
 router.get('/', async (req, res) => {
   try {
-    const images = await Gallery.find();
-    res.json(images);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Gallery.countDocuments();
+    const images = await Gallery.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ uploadDate: -1 });
+
+    res.json({ images, total, page, pages: Math.ceil(total / limit) });
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch images' });
   }
 });
+
+// PATCH update image metadata
+router.patch('/:id', async (req, res) => {
+  try {
+    const updateData = req.body;
+    // Sanitize tags: comma-separated string to array
+    if (updateData.tags && typeof updateData.tags === 'string') {
+      updateData.tags = updateData.tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter((t) => t);
+    }
+
+    const updatedImage = await Gallery.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    });
+    if (!updatedImage) return res.status(404).json({ message: 'Image not found' });
+
+    res.json(updatedImage);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update image' });
+  }
+});
+
 
 // GET image by ID (optional)
 router.get('/:id', async (req, res) => {

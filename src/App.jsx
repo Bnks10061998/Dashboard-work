@@ -79,6 +79,8 @@ import Logout from './Pages/Logout';
 import PersonalDetail from './Pages/PersonalDetail';
 import AuthPage from './Components/AuthPage';
 
+import InvoicePDF from './Pages/InvoicePDF';
+
 const Layout = () => {
   const location = useLocation();
   const isAuthPage = location.pathname === '/' || location.pathname === '/auth';
@@ -99,6 +101,7 @@ const Layout = () => {
           <Route path="/quotation" element={<Quotation />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/invoices" element={<Invoices />} />
+           <Route path="/invoice-list" previewMode={true} element={<InvoicePDF/> }/>
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/refers" element={<Refers />} />
           <Route path="/calendar" element={<CalendarPage />} />
