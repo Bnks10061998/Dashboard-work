@@ -1412,7 +1412,7 @@ const ClientList = () => {
               <td className="border p-2 space-x-2">
                 <button onClick={() => handleEdit(client)} className="text-blue-500"><Pencil size={18} /></button>
                 <button onClick={() => handleDelete(client._id)} className="text-red-500"><Trash2 size={18} /></button>
-                <button onClick={() => handleCreateInvoice(client)} className="text-green-600">Create Invoice</button>
+                <button onClick={() => handleCreateInvoice(client)} className="text-green-600">Creates Invoice</button>
               </td>
             </tr>
           ))}
