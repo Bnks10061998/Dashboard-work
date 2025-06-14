@@ -1409,8 +1409,8 @@ const ClientList = () => {
               <td className="border p-2">{client.address}</td>
               <td className="border p-2">{client.companyName}</td>
               <td className="border p-2 space-x-2">
-                <button onClick={() => handleEdit(client)} className="text-blue-500">Edit</button>
-                <button onClick={() => handleDelete(client._id)} className="text-red-500">Delete</button>
+                {/* <button onClick={() => handleEdit(client)} className="text-blue-500">Edit</button> */}
+                {/* <button onClick={() => handleDelete(client._id)} className="text-red-500">Delete</button> */}
                 <button onClick={() => handleCreateInvoice(client)} className="text-green-600">Create Invoice</button>
               </td>
             </tr>
