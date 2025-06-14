@@ -11,7 +11,7 @@ import {
 const menuItems = [
   { to: '/overview', icon: <FaTachometerAlt />, label: 'Overview' },
    {
-    label: 'Enter and Maitain', icon: <FaFolderOpen />, children: [
+    label: 'Enter and Maintain', icon: <FaFolderOpen />, children: [
       { to: '/add-work', icon: <FaCog />, label: 'Add Work Details' },
       { to: '/client-list', icon: <FaListAlt />, label: 'Client List' },
       { to: '/refers', icon: <FaUserFriends />, label: 'Refers' },

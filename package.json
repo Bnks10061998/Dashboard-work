@@ -16,8 +16,9 @@
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
     "@headlessui/react": "^2.2.2",
+    "@heroicons/react": "^2.2.0",
     "@tippyjs/react": "^4.2.6",
-    "axios": "^1.9.0",
+    "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
@@ -29,6 +30,7 @@
     "express-rate-limit": "^7.5.0",
     "file-saver": "^2.0.5",
     "firebase": "^11.7.1",
+    "formik": "^2.4.6",
     "helmet": "^8.1.0",
     "html2pdf.js": "^0.10.3",
     "jsonwebtoken": "^9.0.2",
@@ -54,7 +56,8 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "swiper": "^11.2.6",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
