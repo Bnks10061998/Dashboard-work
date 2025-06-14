@@ -1157,6 +1157,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Pencil, Trash2, FileText } from 'lucide-react';
 
 const API_URL = 'http://localhost:5000/api/clients';
 const COUNTRY_API = 'https://countriesnow.space/api/v0.1/countries';
@@ -1409,8 +1410,8 @@ const ClientList = () => {
               <td className="border p-2">{client.address}</td>
               <td className="border p-2">{client.companyName}</td>
               <td className="border p-2 space-x-2">
-                {/* <button onClick={() => handleEdit(client)} className="text-blue-500">Edit</button> */}
-                {/* <button onClick={() => handleDelete(client._id)} className="text-red-500">Delete</button> */}
+                <button onClick={() => handleEdit(client)} className="text-blue-500"><Pencil size={18} /></button>
+                <button onClick={() => handleDelete(client._id)} className="text-red-500"><Trash2 size={18} /></button>
                 <button onClick={() => handleCreateInvoice(client)} className="text-green-600">Create Invoice</button>
               </td>
             </tr>
